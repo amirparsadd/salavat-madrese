@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Expose the port that the server will listen on
-EXPOSE 4173
+EXPOSE 3000
 
 # Start the application
-CMD [ "npm", "run", "preview", "--host" ]
+CMD [ "npm", "run", "preview" ]
