@@ -20,14 +20,14 @@ app.get('/', (c) => {
 
 app.post("/click",
   rateLimiter({
-    keyGenerator: (c) => c.req.header()["ar-Real-IP"] || String(getConnInfo(c).remote.address),
+    keyGenerator: (c) => c.req.header()["ar-real-ip"] || String(getConnInfo(c).remote.address),
     limit: 10,
     windowMs: 1000 * 30,
     standardHeaders: "draft-6"
   }),
   (c) => {
   addClick()
-  console.log("New click from:" + (c.req.header()["ar-Real-IP"] || String(getConnInfo(c).remote.address)))
+  console.log("New click from:" + (c.req.header()["ar-real-ip"] || String(getConnInfo(c).remote.address)))
   
   return c.text("Submitted", 201)
   }
