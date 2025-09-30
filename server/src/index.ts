@@ -13,7 +13,7 @@ const app = new Hono()
 app.use(cors())
 app.use(async (c, next) => {
   console.log(`${c.req.method} @ ${c.req.url} | ${getIp(c)}`)
-  next()
+  await next()
 })
 
 app.get('/', (c) => {
