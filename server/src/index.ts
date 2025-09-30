@@ -2,9 +2,8 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { getData, initializeSaveJob, loadData, addClick } from './data.js'
 import { rateLimiter } from 'hono-rate-limiter'
-import { getConnInfo } from '@hono/node-server/conninfo'
 import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
+import { getIp } from './utils.js'
 
 loadData()
 initializeSaveJob()
@@ -12,7 +11,10 @@ initializeSaveJob()
 const app = new Hono()
 
 app.use(cors())
-app.use(logger())
+app.use(async (c, next) => {
+  console.log(`${c.req.method} @ ${c.req.url} | ${getIp(c)}`)
+  next()
+})
 
 app.get('/', (c) => {
   return c.json(getData())
@@ -20,14 +22,13 @@ app.get('/', (c) => {
 
 app.post("/click",
   rateLimiter({
-    keyGenerator: (c) => c.req.header()["ar-real-ip"] || String(getConnInfo(c).remote.address),
+    keyGenerator: getIp,
     limit: 10,
     windowMs: 1000 * 30,
     standardHeaders: "draft-6"
   }),
   (c) => {
   addClick()
-  console.log("New click from:" + (c.req.header()["ar-real-ip"] || String(getConnInfo(c).remote.address)))
   
   return c.text("Submitted", 201)
   }
