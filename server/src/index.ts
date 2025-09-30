@@ -27,6 +27,7 @@ app.post("/click",
   }),
   (c) => {
   addClick()
+  console.log("New click from:" + (c.req.header()["X-Real-IP"] || String(getConnInfo(c).remote.address)))
   
   return c.text("Submitted", 201)
   }
