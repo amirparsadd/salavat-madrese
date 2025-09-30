@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 
   // Update when developing - used on the main salavat madrese website
-  const API_ENDPOINT = "http://back.amir-parsa.ir"
+  const API_ENDPOINT = "https://back.amir-parsa.ir"
 
   let total = ref(0);
   let today = ref(0);
