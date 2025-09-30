@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-  const API_ENDPOINT = "http://localhost:3000"
+  // Update when developing - used on the main salavat madrese website
+  const API_ENDPOINT = "http://back.amir-parsa.ir"
 
   let total = ref(0);
   let today = ref(0);
