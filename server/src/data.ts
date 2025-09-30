@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 
 const DATA_PATH = "./data/data.json"
 
@@ -38,17 +38,27 @@ export function getData(){
 }
 
 export function loadData() {
-  const rawData = readFileSync(DATA_PATH).toString()
-  const structuredData = JSON.parse(rawData)
+  try {
+    const rawData = readFileSync(DATA_PATH).toString()
+    const structuredData = JSON.parse(rawData)
+    data.daily.amount = structuredData.daily.amount
+    data.daily.lastUpdate = structuredData.daily.lastUpdate
+    data.total = structuredData.total
+    
+    return structuredData
+  } catch (error) {
+    // The file isn't there
+    console.error(error)
+  }
 
-  data.daily.amount = structuredData.daily.amount
-  data.daily.lastUpdate = structuredData.daily.lastUpdate
-  data.total = structuredData.total
-  
-  return structuredData
 }
 
 export function saveData() {
+  const dir = "./data"
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true })
+  }
+
   const serializedData = JSON.stringify(data)
   writeFileSync(DATA_PATH, serializedData)
 }
