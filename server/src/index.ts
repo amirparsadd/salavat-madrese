@@ -15,6 +15,7 @@ app.use(cors())
 app.use(logger())
 
 app.get('/', (c) => {
+  console.log(JSON.stringify(c.req.header()))
   return c.json(getData())
 })
 
