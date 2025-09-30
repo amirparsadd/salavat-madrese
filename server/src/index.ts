@@ -4,6 +4,7 @@ import { getData, initializeSaveJob, loadData, addClick } from './data.js'
 import { rateLimiter } from 'hono-rate-limiter'
 import { getConnInfo } from '@hono/node-server/conninfo'
 import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
 
 loadData()
 initializeSaveJob()
@@ -11,6 +12,7 @@ initializeSaveJob()
 const app = new Hono()
 
 app.use(cors())
+app.use(logger())
 
 app.get('/', (c) => {
   return c.json(getData())
