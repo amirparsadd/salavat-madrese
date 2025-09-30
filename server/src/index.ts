@@ -20,7 +20,7 @@ app.get('/', (c) => {
 
 app.post("/click",
   rateLimiter({
-    keyGenerator: (c) => String(getConnInfo(c).remote.address),
+    keyGenerator: (c) => c.req.header()["X-Real-IP"] || String(getConnInfo(c).remote.address),
     limit: 10,
     windowMs: 1000 * 30,
     standardHeaders: "draft-6"
