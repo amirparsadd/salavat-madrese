@@ -31,7 +31,7 @@ import { onMounted, ref } from 'vue';
 
   onMounted(() => {
     fetchFreshData()
-    setInterval(fetchFreshData, 1000) // refresh every 1s
+    setInterval(fetchFreshData, 2000) // refresh every 1s
   })
 </script>
 
