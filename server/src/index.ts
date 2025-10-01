@@ -23,8 +23,8 @@ app.get('/', (c) => {
 app.post("/click",
   rateLimiter({
     keyGenerator: getIp,
-    limit: 10,
-    windowMs: 1000 * 30,
+    limit: 30,
+    windowMs: 1000 * 60,
     standardHeaders: "draft-6"
   }),
   (c) => {
