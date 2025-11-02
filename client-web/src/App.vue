@@ -52,7 +52,7 @@ import { onMounted, ref } from 'vue';
         <p>صلوات های امروز: {{ today }}</p>
       </div>
     </div>
-    <p class="text-xs font-extralight mt-12">فقظ لطفا قبل ضربه زدن بر روی صلوات شمار واقعا صلوات بفرستید تا زحماتمون بیهوده نباشه</p>
+    <p class="text-xs font-extralight mt-12">فقط لطفا قبل ضربه زدن بر روی صلوات شمار واقعا صلوات بفرستید تا زحماتمون بیهوده نباشه</p>
     <p class="text-sm font-extralight">توسعه دهنده: <a class="text-blue-600" href="https://t.me/amirparsab90">امیرپارسا</a></p>
   </main>
 </template>
