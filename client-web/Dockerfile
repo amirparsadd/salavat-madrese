@@ -1,20 +1,27 @@
-# Use an official Node.js runtime as the base image
-FROM node:20-alpine
+# ---------- Build Stage ----------
+FROM node:20-alpine AS builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files to the container
+# Install dependencies
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install project dependencies
-RUN npm install
-
-# Copy the rest of the project files to the container
+# Copy source
 COPY . .
 
-# Expose the port that the server will listen on
-EXPOSE 3000
+# Build the project
+RUN npm run build
 
-# Start the application
-CMD [ "npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# ---------- Production Stage ----------
+FROM nginx:1.27-alpine
+
+# Copy built files to nginx public folder
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
