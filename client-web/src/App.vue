@@ -45,7 +45,7 @@
 </script>
 
 <template>
-  <main class="w-screen h-[100dvh] bg-slate-200 flex flex-col items-center justify-center p-4">
+  <main class="w-screen h-dvh bg-slate-200 flex flex-col items-center justify-center p-4">
     <div class="flex-1 flex flex-col items-center justify-center">
       <h1 class="text-3xl font-bold">صلوات مدرسه</h1>
       <p>اینجا میتونی همراه با سایر دانش آموزان ایران بشینی و برای تعطیلی مدارس صلوات بفرستی :)</p>
