@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
+
+  const REFETCH_INTERVAL = 2 * 1000 // 2 Seconds
 
   // Update when developing - used on the main salavat madrese website
   const API_ENDPOINT = "https://back.amir-parsa.ir"
@@ -7,6 +9,7 @@ import { onMounted, ref } from 'vue';
   let total = ref(0);
   let today = ref(0);
   let loading = ref(true);
+  let interval = ref<number | null>(null);
 
   async function fetchFreshData() {
     const req = await fetch(API_ENDPOINT + "/")
@@ -26,12 +29,18 @@ import { onMounted, ref } from 'vue';
       today.value--
       total.value--
       setTimeout(() => alert("خیلی تند تند صلوات میفرستیا، یکم آروم تر"), 10)
+      return
+    }
+
+    if(interval.value) {
+      clearInterval(interval.value)
+      interval.value = setInterval(fetchFreshData, REFETCH_INTERVAL)
     }
   }
 
   onMounted(() => {
     fetchFreshData()
-    setInterval(fetchFreshData, 2000) // refresh every 2s
+    interval.value = setInterval(fetchFreshData, REFETCH_INTERVAL)
   })
 </script>
 
