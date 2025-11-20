@@ -54,7 +54,10 @@ import { onMounted, ref } from 'vue';
     </div>
     <footer class="flex flex-col items-center justify-center">
       <p class="text-xs font-extralight mt-12">فقط لطفا قبل ضربه زدن بر روی صلوات شمار واقعا صلوات بفرستید تا زحماتمون بیهوده نباشه</p>
-      <p class="text-sm font-extralight">توسعه دهنده: <a class="text-blue-600" href="https://t.me/amirparsab90">امیرپارسا</a></p>
+      <div class="text-sm mt-1 text-blue-500 hover:text-blue-500/80 font-bold flex gap-4">
+        <a href="https://t.me/amirparsab90">پشتیبانی</a>
+        <a href="https://uptimekuma.afrachin.ir/status/salavat-madrese">وضعیت سرویس</a>
+      </div>
     </footer>
   </main>
 </template>
