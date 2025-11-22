@@ -1,0 +1,11 @@
+const PORT = process.env.PORT || 3000
+const HOSTNAME = process.env.HOSTNAME || "0.0.0.0"
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN
+const DATABASE_CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING
+
+module.exports = {
+  PORT,
+  HOSTNAME,
+  ACCESS_TOKEN,
+  DATABASE_CONNECTION_STRING
+}
