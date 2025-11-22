@@ -9,7 +9,7 @@
   let interval = ref<number | null>(null);
 
   async function fetchFreshData() {
-    const req = await fetch(import.meta.env.API_ENDPOINT + "/")
+    const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/")
     const data = await req.json()
 
     total.value = data.total
@@ -20,7 +20,7 @@
   async function click() {
     today.value++
     total.value++
-    const req = await fetch(import.meta.env.API_ENDPOINT + "/click", { method: "POST" })
+    const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/click", { method: "POST" })
 
     if(req.status === 429) {
       today.value--
