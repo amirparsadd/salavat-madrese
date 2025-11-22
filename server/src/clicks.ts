@@ -22,7 +22,11 @@ export function addClick() {
   clickCountBuffer.value++
 }
 
-export function getData(): DataStructure {
+export function addClicks(amount: number) {
+  clickCountBuffer.value += amount
+}
+
+export function getClickData(): DataStructure {
   return {
     daily: {
       amount: data.daily.amount + clickCountBuffer.value,
@@ -32,7 +36,7 @@ export function getData(): DataStructure {
   }
 }
 
-export async function loadData() {
+export async function loadClickData() {
   const res = await fetch(process.env.DAL_ENDPOINT + "/clicks", {
     method: "GET",
     headers: {
@@ -45,7 +49,7 @@ export async function loadData() {
   data.total = resData.total
 }
 
-export async function syncData() {
+export async function syncClickData() {
   if(clickCountBuffer.value !== 0) {
     await fetch(process.env.DAL_ENDPOINT + "/clicks", {
       method: "POST",
@@ -60,13 +64,13 @@ export async function syncData() {
     clickCountBuffer.value = 0
   }
 
-  await loadData()
+  await loadClickData()
 
   console.log("Synced data with DAL")
 }
 
 export function initializeSyncJob(timing: number = 1000) {
-  const interval = setInterval(syncData, timing)
+  const interval = setInterval(syncClickData, timing)
 
   return interval
 }
