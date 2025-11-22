@@ -87,16 +87,53 @@
 		{
 			"name": "Create/Update Config",
 			"request": {
-				"method": "GET",
-				"header": []
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"key\": \"a\",\n    \"value\": \"b\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/configs",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"configs"
+					]
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "Update Config By Key",
 			"request": {
-				"method": "GET",
-				"header": []
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"value\": \"c\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/configs/a",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"configs",
+						"a"
+					]
+				}
 			},
 			"response": []
 		}
