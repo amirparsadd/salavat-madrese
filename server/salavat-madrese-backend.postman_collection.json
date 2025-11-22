@@ -1,0 +1,178 @@
+{
+	"info": {
+		"_postman_id": "85cffb04-5269-43cb-b6c4-14c32e0afebe",
+		"name": "Salavat Madrese Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43631672",
+		"_collection_link": "https://amirparsabaghdadi.postman.co/workspace/Amirparsa-Baghdadi's-Workspace~b6d389b8-628c-4353-8ed2-6cbc09ccb5bd/collection/43631672-85cffb04-5269-43cb-b6c4-14c32e0afebe?action=share&source=collection_link&creator=43631672"
+	},
+	"item": [
+		{
+			"name": "Click",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/click",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"click"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Clicks",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Configs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/configs",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"configs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single Config",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/configs/d",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"configs",
+						"d"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create/Update Config Copy",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"value\": \"b\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/configs/tomato",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"configs",
+						"tomato"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Increment Clicks",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"amount\": 100\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/clicks",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"clicks"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "Secret",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		}
+	]
+}
