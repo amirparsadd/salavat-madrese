@@ -1,12 +1,16 @@
+if(process.env.NODE_ENV !== "production") {
+  (await import("dotenv")).configDotenv()
+}
+
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { getData, initializeSaveJob, loadData, addClick } from './data.js'
+import { getData, initializeSyncJob, loadData, addClick } from './data.js'
 import { rateLimiter } from 'hono-rate-limiter'
 import { cors } from 'hono/cors'
 import { getIp } from './utils.js'
 
-loadData()
-initializeSaveJob()
+await loadData()
+initializeSyncJob()
 
 const app = new Hono()
 
@@ -36,7 +40,7 @@ app.post("/click",
 
 serve({
   fetch: app.fetch,
-  port: 3000,
+  port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
   hostname: "0.0.0.0"
 }, (info) => {
   console.log(`Server is running on http://${info.address}:${info.port}`)

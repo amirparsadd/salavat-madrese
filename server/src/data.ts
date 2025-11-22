@@ -1,7 +1,3 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
-
-const DATA_PATH = "./data/data.json"
-
 interface DataStructure {
   daily: {
     amount: number,
@@ -18,53 +14,59 @@ let data: DataStructure = {
   total: 0
 }
 
+let clickCountBuffer = {
+  value: 0
+}
+
 export function addClick() {
-  data.total++
-  
-  const currentDate = new Date().toDateString()
-  const lastDate = new Date(data.daily.lastUpdate).toDateString()
+  clickCountBuffer.value++
+}
 
-  if(currentDate !== lastDate) {
-    // New Day
-    data.daily.amount = 1
-  } else {
-    data.daily.amount++
+export function getData(): DataStructure {
+  return {
+    daily: {
+      amount: data.daily.amount + clickCountBuffer.value,
+      lastUpdate: data.daily.lastUpdate
+    },
+    total: data.total + clickCountBuffer.value
   }
-  data.daily.lastUpdate = Date.now()
 }
 
-export function getData(){
-  return data
+export async function loadData() {
+  const res = await fetch(process.env.DAL_ENDPOINT + "/clicks", {
+    method: "GET",
+    headers: {
+      Authorization: process.env.DAL_ACCESS_TOKEN || ""
+    }
+  })
+  const resData = (await res.json()).data
+
+  data.daily = resData.daily
+  data.total = resData.total
 }
 
-export function loadData() {
-  try {
-    const rawData = readFileSync(DATA_PATH).toString()
-    const structuredData = JSON.parse(rawData)
-    data.daily.amount = structuredData.daily.amount
-    data.daily.lastUpdate = structuredData.daily.lastUpdate
-    data.total = structuredData.total
-    
-    return structuredData
-  } catch (error) {
-    // The file isn't there
-    console.error(error)
+export async function syncData() {
+  if(clickCountBuffer.value !== 0) {
+    await fetch(process.env.DAL_ENDPOINT + "/clicks", {
+      method: "POST",
+      headers: {
+        Authorization: process.env.DAL_ACCESS_TOKEN || ""
+      },
+      body: JSON.stringify({
+        amount: clickCountBuffer.value
+      })
+    })
+
+    clickCountBuffer.value = 0
   }
 
+  await loadData()
+
+  console.log("Synced data with DAL")
 }
 
-export function saveData() {
-  const dir = "./data"
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
-  }
-
-  const serializedData = JSON.stringify(data)
-  writeFileSync(DATA_PATH, serializedData)
-}
-
-export function initializeSaveJob(timing: number = 5000) {
-  const interval = setInterval(saveData, timing)
+export function initializeSyncJob(timing: number = 1000) {
+  const interval = setInterval(syncData, timing)
 
   return interval
 }
