@@ -3,6 +3,7 @@
   import { configs } from './state/configs';
   import { clicks } from './state/clicks';
   import { interval } from './state/interval';
+  import Counter from './component/Counter.vue';
 
   onMounted(() => {
     clicks.fetch()
@@ -24,8 +25,8 @@
           <span>آمار و ارقام</span>
           <img src="/barchart.png" alt="تصویر آمار" width="24px" height="24px">
         </h2>
-        <p>کل صلوات ها: {{ clicks.total }}</p>
-        <p>صلوات های امروز: {{ clicks.today }}</p>
+        <Counter :value="clicks.total">کل صلوات ها: </Counter>
+        <Counter :value="clicks.today">صلوات های امروز: </Counter>
       </div>
     </div>
     <footer class="flex flex-col items-center justify-center">
