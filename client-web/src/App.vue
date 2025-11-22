@@ -1,46 +1,14 @@
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue';
-
-  const REFETCH_INTERVAL = 2 * 1000 // 2 Seconds
-
-  // Update when developing - used on the main salavat madrese website
-  const API_ENDPOINT = "https://back.amir-parsa.ir"
-
-  let total = ref(0);
-  let today = ref(0);
-  let loading = ref(true);
-  let interval = ref<number | null>(null);
-
-  async function fetchFreshData() {
-    const req = await fetch(API_ENDPOINT + "/")
-    const data = await req.json()
-
-    total.value = data.total
-    today.value = data.daily.amount
-    loading.value = false
-  }
-
-  async function click() {
-    today.value++
-    total.value++
-    const req = await fetch(API_ENDPOINT + "/click", { method: "POST" })
-
-    if(req.status === 429) {
-      today.value--
-      total.value--
-      setTimeout(() => alert("خیلی تند تند صلوات میفرستیا، یکم آروم تر"), 10)
-      return
-    }
-
-    if(interval.value) {
-      clearInterval(interval.value)
-      interval.value = setInterval(fetchFreshData, REFETCH_INTERVAL)
-    }
-  }
+  import { onMounted } from 'vue';
+  import { configs } from './state/configs';
+  import { clicks } from './state/clicks';
+  import { interval } from './state/interval';
+  import Counter from './component/Counter.vue';
 
   onMounted(() => {
-    fetchFreshData()
-    interval.value = setInterval(fetchFreshData, REFETCH_INTERVAL)
+    clicks.fetch()
+    configs.fetch()
+    interval.restart()
   })
 </script>
 
@@ -49,23 +17,23 @@
     <div class="flex-1 flex flex-col items-center justify-center">
       <h1 class="text-3xl font-bold">صلوات مدرسه</h1>
       <p>اینجا میتونی همراه با سایر دانش آموزان ایران بشینی و برای تعطیلی مدارس صلوات بفرستی :)</p>
-      <button @click="click()" class="m-4 p-8 rounded-full cursor-pointer hover:opacity-90 active:scale-110 border border-slate-300 bg-slate-50">
+      <button @click="clicks.click()" class="m-4 p-8 rounded-full cursor-pointer hover:opacity-90 active:scale-110 border border-slate-300 bg-slate-50">
         <img src="/pray.png" alt="دکمه صلوات" width="64px" height="64px">
       </button>
-      <div v-if="loading === false">
+      <div v-if="!clicks.loading">
         <h2 class="flex gap-1 text-xl font-semibold">
           <span>آمار و ارقام</span>
           <img src="/barchart.png" alt="تصویر آمار" width="24px" height="24px">
         </h2>
-        <p>کل صلوات ها: {{ total }}</p>
-        <p>صلوات های امروز: {{ today }}</p>
+        <Counter :value="clicks.total">کل صلوات ها: </Counter>
+        <Counter :value="clicks.today">صلوات های امروز: </Counter>
       </div>
     </div>
     <footer class="flex flex-col items-center justify-center">
       <p class="text-xs font-extralight mt-12">فقط لطفا قبل ضربه زدن بر روی صلوات شمار واقعا صلوات بفرستید تا زحماتمون بیهوده نباشه</p>
-      <div class="text-sm mt-1 text-blue-500 hover:text-blue-500/80 font-bold flex gap-4">
-        <a href="https://t.me/amirparsab90">پشتیبانی</a>
-        <a href="https://uptimekuma.afrachin.ir/status/salavat-madrese">وضعیت سرویس</a>
+      <div class="text-sm mt-1 text-blue-500 font-bold flex gap-4">
+        <a class="hover:text-blue-500/80" :href="configs?.value['support'] || 'https://t.me/amirparsab90'">پشتیبانی</a>
+        <a class="hover:text-blue-500/80" :href="configs?.value['servicestatus'] || 'https://uptimekuma.afrachin.ir/status/salavat-madrese'">وضعیت سرویس</a>
       </div>
     </footer>
   </main>

@@ -7,14 +7,5 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss()
-  ],
-  server: {
-    watch: {
-      usePolling: true,
-    },
-    host: true, // Here
-    strictPort: true,
-    port: 3000,
-    allowedHosts: true
-  }
+  ]
 })
