@@ -13,9 +13,6 @@ RUN npm install
 # Copy the rest of the project files to the container
 COPY . .
 
-# Build the project
-RUN npm run build
-
 # Expose the port that the server will listen on
 EXPOSE 3000
 
