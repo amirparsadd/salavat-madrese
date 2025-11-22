@@ -21,14 +21,38 @@ async function initialize() {
       CREATE TABLE IF NOT EXISTS clicks (
         id SERIAL PRIMARY KEY,
         count BIGINT NOT NULL DEFAULT 0,
+        daily_amount BIGINT NOT NULL DEFAULT 0,
+        daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now(),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
       );
     `);
 
+    // Add daily_amount column if it doesn't exist (for existing tables)
+    await client.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+          WHERE table_name='clicks' AND column_name='daily_amount') THEN
+          ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0;
+        END IF;
+      END $$;
+    `);
+
+    // Add daily_last_update column if it doesn't exist (for existing tables)
+    await client.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+          WHERE table_name='clicks' AND column_name='daily_last_update') THEN
+          ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now();
+        END IF;
+      END $$;
+    `);
+
     // Ensure a single row exists in clicks table
     await client.query(`
-      INSERT INTO clicks (id, count)
-      SELECT 1, 1
+      INSERT INTO clicks (id, count, daily_amount, daily_last_update)
+      SELECT 1, 1, 1, now()
       WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
     `);
 
@@ -67,28 +91,63 @@ async function initialize() {
 // Click Functions
 
 /**
- * Read the current click count
- * @returns {Promise<number>}
+ * Read the current click count with daily tracking
+ * @returns {Promise<{daily: {amount: number, lastUpdate: number}, total: number}>}
  */
 async function getClickCount() {
-  const res = await pool.query("SELECT count FROM clicks WHERE id = 1");
-  return res.rows[0]?.count ?? 0;
+  const res = await pool.query(
+    "SELECT count, daily_amount, daily_last_update FROM clicks WHERE id = 1"
+  );
+  const row = res.rows[0];
+  if (!row) {
+    return {
+      daily: {
+        amount: 0,
+        lastUpdate: 0
+      },
+      total: 0
+    };
+  }
+  return {
+    daily: {
+      amount: Number(row.daily_amount) || 0,
+      lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
+    },
+    total: Number(row.count) || 0
+  };
 }
 
 /**
- * Increment the click count atomically
+ * Increment the click count atomically with daily tracking
  * @param {number} amount - number of clicks to add
- * @returns {Promise<number | null>}
+ * @returns {Promise<{daily: {amount: number, lastUpdate: number}, total: number} | null>}
  */
 async function incrementClickCount(amount = 1) {
   const res = await pool.query(
     `UPDATE clicks
-     SET count = count + $1
+     SET 
+       count = count + $1,
+       daily_amount = CASE 
+         WHEN daily_last_update IS NOT NULL AND DATE(daily_last_update) = DATE(now()) 
+           THEN daily_amount + $1
+         ELSE $1
+       END,
+       daily_last_update = now()
      WHERE id = 1
-     RETURNING count`,
+     RETURNING count, daily_amount, daily_last_update`,
     [amount]
   );
-  return res.rows[0]?.count ?? null;
+  const row = res.rows[0];
+  if (!row) {
+    return null;
+  }
+  return {
+    daily: {
+      amount: Number(row.daily_amount) || 0,
+      lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
+    },
+    total: Number(row.count) || 0
+  };
 }
 
 // Key-Value Functions
