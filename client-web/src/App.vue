@@ -7,6 +7,7 @@
   let today = ref(0);
   let loading = ref(true);
   let interval = ref<number | null>(null);
+  let configs = ref<Record<string, string>>({})
 
   async function fetchFreshData() {
     const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/")
@@ -15,6 +16,13 @@
     total.value = data.total
     today.value = data.daily.amount
     loading.value = false
+  }
+
+  async function fetchConfigs() {
+    const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/configs")
+    const data = await req.json()
+
+    configs.value = data
   }
 
   async function click() {
@@ -37,6 +45,7 @@
 
   onMounted(() => {
     fetchFreshData()
+    fetchConfigs()
     interval.value = setInterval(fetchFreshData, REFETCH_INTERVAL)
   })
 </script>
@@ -60,9 +69,9 @@
     </div>
     <footer class="flex flex-col items-center justify-center">
       <p class="text-xs font-extralight mt-12">فقط لطفا قبل ضربه زدن بر روی صلوات شمار واقعا صلوات بفرستید تا زحماتمون بیهوده نباشه</p>
-      <div class="text-sm mt-1 text-blue-500 hover:text-blue-500/80 font-bold flex gap-4">
-        <a href="https://t.me/amirparsab90">پشتیبانی</a>
-        <a href="https://uptimekuma.afrachin.ir/status/salavat-madrese">وضعیت سرویس</a>
+      <div class="text-sm mt-1 text-blue-500 font-bold flex gap-4">
+        <a class="hover:text-blue-500/80" :href="configs['support'] || 'https://t.me/amirparsab90'">پشتیبانی</a>
+        <a class="hover:text-blue-500/80" :href="configs['servicestatus'] || 'https://uptimekuma.afrachin.ir/status/salavat-madrese'">وضعیت سرویس</a>
       </div>
     </footer>
   </main>
