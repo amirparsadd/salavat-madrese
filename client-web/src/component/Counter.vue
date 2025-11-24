@@ -12,7 +12,8 @@ let countUpInstance: CountUp;
 
 onMounted(() => {
   if (counterRef.value) {
-    countUpInstance = new CountUp(counterRef.value, props.value, { duration: 0.4 });
+    const duration = Math.min(2, Math.log10(props.value + 1) * 0.3);
+    countUpInstance = new CountUp(counterRef.value, props.value, { duration: duration });
     countUpInstance.start();
   }
 });
