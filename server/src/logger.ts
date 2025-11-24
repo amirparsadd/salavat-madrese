@@ -8,6 +8,8 @@ export function log(
     return console[type](`[${type.toUpperCase()}] [${service}] ${message} (${JSON.stringify(metadata)})`)
   }
 
+  if(type === "debug") return // We're on prod
+
   return console[type](JSON.stringify({
     type, service, message, metadata
   }))
