@@ -5,6 +5,7 @@
   import { interval } from './state/interval';
   import Counter from './component/Counter.vue';
   import Footer from './component/Footer.vue';
+  import ShareButton from './component/ShareButton.vue';
 
   onMounted(() => {
     clicks.fetch()
@@ -28,6 +29,7 @@
         </h2>
         <Counter :value="clicks.total">کل صلوات ها: </Counter>
         <Counter :value="clicks.today">صلوات های امروز: </Counter>
+        <ShareButton />
       </div>
     </div>
     <Footer />
