@@ -29,8 +29,8 @@
         </h2>
         <Counter :value="clicks.total">کل صلوات ها: </Counter>
         <Counter :value="clicks.today">صلوات های امروز: </Counter>
-        <ShareButton />
       </div>
+      <ShareButton />
     </div>
     <Footer />
   </main>
