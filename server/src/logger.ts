@@ -8,7 +8,7 @@ export function log(
     return console[type](`[${type.toUpperCase()}] [${service}] ${message} (${JSON.stringify(metadata)})`)
   }
 
-  return console[type]({
+  return console[type](JSON.stringify({
     type, service, message, metadata
-  })
+  }))
 }
