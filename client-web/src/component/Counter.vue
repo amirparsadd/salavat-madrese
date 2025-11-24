@@ -13,7 +13,21 @@ let countUpInstance: CountUp;
 onMounted(() => {
   if (counterRef.value) {
     const duration = Math.min(2, Math.log10(props.value + 1) * 0.3);
-    countUpInstance = new CountUp(counterRef.value, props.value, { duration: duration });
+    countUpInstance = new CountUp(counterRef.value, props.value, {
+      duration: duration,
+      easingFn: (t, b, c, d) => {
+        const progress = t / d;
+        const smallIncrement = c < 5;
+        
+        // if the increment is tiny, skip most of the animation
+        if (smallIncrement) {
+          return b + c * Math.min(1, progress * 10)
+        }
+
+        // normal easeOutQuart for larger jumps
+        return b + c * (1 - Math.pow(1 - progress, 4));
+      }
+    });
     countUpInstance.start();
   }
 });
