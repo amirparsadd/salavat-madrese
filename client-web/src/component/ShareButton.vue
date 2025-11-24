@@ -1,6 +1,9 @@
 <script setup lang="ts">
+  import { useToast } from "vue-toastification"
   import ShareIcon from "../assets/share.svg"
   
+  const toast = useToast()
+
   function share() {
     if("share" in navigator) {
       try {
@@ -10,10 +13,10 @@
         })
       } catch (error) {
         console.error("Error when sharing:", error)
-        alert("متاسفانه نتونستیم این حرکتو بزنیم!")
+        toast.error("متاسفانه نتونستیم این حرکتو بزنیم!")
       }
     } else {
-      alert("متاسفانه مرورگرت از اشتراک گذاری پشتیبانی نمیکنه!")
+      toast.error("متاسفانه مرورگرت از اشتراک گذاری پشتیبانی نمیکنه!")
     }
   }
 </script>

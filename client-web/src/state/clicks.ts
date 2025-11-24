@@ -1,5 +1,8 @@
 import { reactive } from "vue";
 import { interval } from "./interval";
+import { useToast } from "vue-toastification";
+
+const toast = useToast()
 
 export const clicks = reactive<{
   total: number,
@@ -19,7 +22,7 @@ export const clicks = reactive<{
     if(req.status === 429) {
       this.today--
       this.total--
-      setTimeout(() => alert("خیلی تند تند صلوات میفرستیا، یکم آروم تر"), 10)
+      toast.error("خیلی تند تند صلوات میفرستیا، یکم آروم تر")
       return
     }
 
