@@ -10,21 +10,51 @@ import { cors } from 'hono/cors'
 import { getIp } from './utils.js'
 import { getAllConfigs, getConfig, initializeConfigCacheClearJob, setConfig } from './configs.js'
 import { adminMiddleware } from './admin-middleware.js'
+import { log } from './logger.js'
 
-await loadClickData()
+try {
+  await loadClickData()
+  log("info", "hono", "Click data loaded on startup")
+} catch (error) {
+  log("error", "hono", "Failed to load click data on startup", { 
+    error: error instanceof Error ? error.message : String(error) 
+  })
+}
+
 initializeSyncJob()
 initializeConfigCacheClearJob()
+log("info", "hono", "Background jobs initialized")
 
 const app = new Hono()
 
 app.use(cors())
 app.use(async (c, next) => {
-  console.log(`${c.req.method} @ ${c.req.url} | ${getIp(c)}`)
+  const startTime = Date.now()
   await next()
+  const duration = Date.now() - startTime
+  const status = c.res.status
+  
+  if (status === 429) {
+    log("warn", "hono", "Rate limit reached", { 
+      method: c.req.method, 
+      url: c.req.url, 
+      ip: getIp(c)
+    })
+  }
+  
+  log("info", "hono", "Request processed", { 
+    method: c.req.method, 
+    url: c.req.url, 
+    ip: getIp(c),
+    status,
+    duration 
+  })
 })
 
 app.get("/", (c) => {
-  return c.json(getClickData())
+  const data = getClickData()
+  log("debug", "hono", "Click data retrieved", { total: data.total, daily: data.daily.amount })
+  return c.json(data)
 })
 
 app.post("/click",
@@ -36,49 +66,91 @@ app.post("/click",
   }),
   (c) => {
   addClick()
-  
+  log("info", "hono", "Click submitted", { ip: getIp(c) })
   return c.text("Submitted", 201)
   }
 )
 
 app.get("/configs", async (c) => {
-  return c.json(await getAllConfigs())
+  try {
+    const configs = await getAllConfigs()
+    log("debug", "hono", "All configs retrieved", { count: Object.keys(configs).length })
+    return c.json(configs)
+  } catch (error) {
+    log("error", "hono", "Error retrieving all configs", { error: error instanceof Error ? error.message : String(error) })
+    return c.json({ error: "Internal server error" }, 500)
+  }
 })
 
 app.get("/configs/:key", async (c) => {
-  const config = await getConfig(c.req.param().key)
+  try {
+    const key = c.req.param().key
+    const config = await getConfig(key)
 
-  return c.json({ data: config }, config === null ? 404 : 200)
+    if (config === null || config === undefined) {
+      log("debug", "hono", "Config not found", { key })
+      return c.json({ data: config }, 404)
+    }
+
+    log("debug", "hono", "Config retrieved", { key })
+    return c.json({ data: config }, 200)
+  } catch (error) {
+    log("error", "hono", "Error retrieving config", { 
+      key: c.req.param().key, 
+      error: error instanceof Error ? error.message : String(error) 
+    })
+    return c.json({ error: "Internal server error" }, 500)
+  }
 })
 
 app.post("/configs/:key",
   adminMiddleware,
   async (c) => {
-    const key = c.req.param().key
-    const { value } = (await c.req.json()) as { value: string }
+    try {
+      const key = c.req.param().key
+      const { value } = (await c.req.json()) as { value: string }
 
-    if(!key || !value || key.trim().length === 0 || value.trim().length === 0) {
-      return c.json({ success: false, error: "Invalid Key or Value" }, 400)
+      if(!key || !value || key.trim().length === 0 || value.trim().length === 0) {
+        log("warn", "hono", "Invalid config key or value", { key, hasValue: !!value })
+        return c.json({ success: false, error: "Invalid Key or Value" }, 400)
+      }
+
+      await setConfig(key, value)
+      log("info", "hono", "Config set", { key, ip: getIp(c) })
+
+      return c.json({ succes: true, value }, 201)
+    } catch (error) {
+      log("error", "hono", "Error setting config", { 
+        key: c.req.param().key, 
+        error: error instanceof Error ? error.message : String(error) 
+      })
+      return c.json({ success: false, error: "Internal server error" }, 500)
     }
-
-    await setConfig(key, value)
-
-    return c.json({ succes: true, value }, 201)
   }
 )
 
 app.post("/clicks",
   adminMiddleware,
   async (c) => {
-    const amount = (await c.req.json()).amount
+    try {
+      const amount = (await c.req.json()).amount
 
-    if(!amount || typeof amount !== "number") {
-      return c.json({ success: false, error: "Invalid Amount" }, 400)
+      if(!amount || typeof amount !== "number") {
+        log("warn", "hono", "Invalid clicks amount", { amount, ip: getIp(c) })
+        return c.json({ success: false, error: "Invalid Amount" }, 400)
+      }
+
+      addClicks(amount)
+      const total = getClickData().total
+      log("info", "hono", "Clicks added via admin", { amount, total, ip: getIp(c) })
+
+      return c.json({ success: true, clicks: total }, 201)
+    } catch (error) {
+      log("error", "hono", "Error adding clicks", { 
+        error: error instanceof Error ? error.message : String(error) 
+      })
+      return c.json({ success: false, error: "Internal server error" }, 500)
     }
-
-    addClicks(amount)
-
-    return c.json({ success: true, clicks: getClickData().total }, 201)
   }
 )
 
@@ -87,5 +159,5 @@ serve({
   port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
   hostname: "0.0.0.0"
 }, (info) => {
-  console.log(`Server is running on http://${info.address}:${info.port}`)
+  log("info", "hono", `Server is running on http://${info.address}:${info.port}`, { port: info.port, address: info.address })
 })
