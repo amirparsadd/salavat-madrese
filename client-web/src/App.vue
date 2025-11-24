@@ -4,7 +4,7 @@
   import { clicks } from './state/clicks';
   import { interval } from './state/interval';
   import Counter from './component/Counter.vue';
-import Footer from './component/Footer.vue';
+  import Footer from './component/Footer.vue';
 
   onMounted(() => {
     clicks.fetch()
