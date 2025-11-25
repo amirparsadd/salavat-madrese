@@ -66,7 +66,9 @@ export const clicks = reactive<{
     const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/")
     const data = await req.json()
 
-    this.total = data.total
+    if(this.total < data.total) {
+      this.total = data.total
+    }
     this.today = data.daily.amount
     this.loading = false
   }
