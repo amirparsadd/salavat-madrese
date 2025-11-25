@@ -97,7 +97,7 @@ export async function syncClickData() {
   }
 }
 
-export function initializeSyncJob(timing: number = 1000) {
+export function initializeSyncJob(timing: number = 500) {
   log("info", "clicks", "Initializing sync job", { timing })
   const interval = setInterval(syncClickData, timing)
 
