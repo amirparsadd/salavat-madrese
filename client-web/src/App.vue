@@ -31,7 +31,7 @@
         <Counter v-if="clicks.today !== clicks.total" :value="clicks.total">کل صلوات ها: </Counter>
         <Counter :value="clicks.today">صلوات های امروز: </Counter>
         <!-- A Counter isn't really needed as this number always goes up in small increments -->
-        <p>صلوات های تو: {{ clicks.you }}</p>
+        <p>صلوات های تو: {{ clicks.you.toLocaleString("fa-IR") }}</p>
       </div>
       <ShareButton />
     </div>
