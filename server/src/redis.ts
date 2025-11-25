@@ -1,5 +1,5 @@
-import { log } from "console"
 import "dotenv/config"
+import { log } from "console"
 import { createClient } from 'redis'
 
 export const redisClient = createClient({
