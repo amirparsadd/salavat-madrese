@@ -16,50 +16,114 @@ async function initialize() {
   try {
     await client.query("BEGIN");
 
-    // Create clicks table if it doesn't exist (with all columns for new installations)
+    // Create clicks table if it doesn't exist
     await client.query(`
       CREATE TABLE IF NOT EXISTS clicks (
         id SERIAL PRIMARY KEY,
         count BIGINT NOT NULL DEFAULT 0,
-        daily_amount BIGINT NOT NULL DEFAULT 0,
-        daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now(),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
       );
     `);
 
-    // Add daily_amount column if it doesn't exist (for existing tables)
-    // Using a safer approach that checks if column exists before adding
-    const dailyAmountCheck = await client.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'clicks' AND column_name = 'daily_amount'
-    `);
+    // Commit the table creation first to ensure catalog is updated
+    await client.query("COMMIT");
     
-    if (dailyAmountCheck.rows.length === 0) {
-      await client.query(`
-        ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0
-      `);
-    }
+    // Start a new transaction for column additions
+    await client.query("BEGIN");
 
-    // Add daily_last_update column if it doesn't exist (for existing tables)
-    const dailyLastUpdateCheck = await client.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'clicks' AND column_name = 'daily_last_update'
+    // Add columns using DO block with proper exception handling
+    // This handles catalog corruption errors (XX000) gracefully
+    await client.query(`
+      DO $$ 
+      DECLARE
+        col_exists boolean;
+      BEGIN
+        -- Check and add daily_amount
+        SELECT EXISTS (
+          SELECT 1 FROM pg_attribute a
+          JOIN pg_class c ON a.attrelid = c.oid
+          JOIN pg_namespace n ON c.relnamespace = n.oid
+          WHERE n.nspname = 'public' 
+            AND c.relname = 'clicks' 
+            AND a.attname = 'daily_amount'
+            AND a.attnum > 0
+        ) INTO col_exists;
+        
+        IF NOT col_exists THEN
+          BEGIN
+            ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0;
+          EXCEPTION
+            WHEN duplicate_column THEN
+              NULL;
+            WHEN OTHERS THEN
+              -- Catch catalog corruption errors (XX000) and continue
+              IF SQLSTATE = 'XX000' THEN
+                RAISE NOTICE 'Skipping daily_amount: catalog issue (OID error)';
+              ELSE
+                RAISE;
+              END IF;
+          END;
+        END IF;
+        
+        -- Check and add daily_last_update
+        SELECT EXISTS (
+          SELECT 1 FROM pg_attribute a
+          JOIN pg_class c ON a.attrelid = c.oid
+          JOIN pg_namespace n ON c.relnamespace = n.oid
+          WHERE n.nspname = 'public' 
+            AND c.relname = 'clicks' 
+            AND a.attname = 'daily_last_update'
+            AND a.attnum > 0
+        ) INTO col_exists;
+        
+        IF NOT col_exists THEN
+          BEGIN
+            ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now();
+          EXCEPTION
+            WHEN duplicate_column THEN
+              NULL;
+            WHEN OTHERS THEN
+              IF SQLSTATE = 'XX000' THEN
+                RAISE NOTICE 'Skipping daily_last_update: catalog issue (OID error)';
+              ELSE
+                RAISE;
+              END IF;
+          END;
+        END IF;
+      END $$;
     `);
-    
-    if (dailyLastUpdateCheck.rows.length === 0) {
-      await client.query(`
-        ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now()
-      `);
-    }
 
     // Ensure a single row exists in clicks table
-    await client.query(`
-      INSERT INTO clicks (id, count, daily_amount, daily_last_update)
-      SELECT 1, 1, 1, now()
-      WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
+    // Check which columns actually exist before inserting
+    const tableOidForInsert = await client.query(`
+      SELECT oid FROM pg_class WHERE relname = 'clicks' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
     `);
+    
+    if (tableOidForInsert.rows.length > 0) {
+      const oid = tableOidForInsert.rows[0].oid;
+      const hasDailyAmount = await client.query(`
+        SELECT 1 FROM pg_attribute WHERE attrelid = $1 AND attname = 'daily_amount' AND attnum > 0
+      `, [oid]);
+      const hasDailyLastUpdate = await client.query(`
+        SELECT 1 FROM pg_attribute WHERE attrelid = $1 AND attname = 'daily_last_update' AND attnum > 0
+      `, [oid]);
+      
+      if (hasDailyAmount.rows.length > 0 && hasDailyLastUpdate.rows.length > 0) {
+        // Both columns exist, use full insert
+        await client.query(`
+          INSERT INTO clicks (id, count, daily_amount, daily_last_update)
+          SELECT 1, 0, 0, now()
+          WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
+        `);
+      } else {
+        // Fallback: insert without new columns
+        await client.query(`
+          INSERT INTO clicks (id, count)
+          SELECT 1, 0
+          WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
+        `);
+      }
+    }
 
     // Create configs table
     await client.query(`
