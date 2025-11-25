@@ -18,11 +18,11 @@ onMounted(() => {
       formattingFn: n => n.toLocaleString("fa-IR"),
       easingFn: (t, b, c, d) => {
         const progress = t / d;
-        const smallIncrement = c < 5;
+        const smallIncrement = c === 1;
         
         // if the increment is tiny, skip most of the animation
         if (smallIncrement) {
-          return b + c * Math.min(1, progress * 10)
+          return b + c
         }
 
         // normal easeOutQuart for larger jumps
