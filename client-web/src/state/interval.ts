@@ -13,6 +13,6 @@ export const interval = reactive<{
       clearInterval(this.value)
     }
     
-    this.value = setInterval(clicks.fetch, REFETCH_INTERVAL)
+    this.value = setInterval(() => clicks.fetch(), REFETCH_INTERVAL)
   }
 })
