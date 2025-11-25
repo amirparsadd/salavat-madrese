@@ -60,7 +60,7 @@ app.get("/", (c) => {
 app.post("/click",
   rateLimiter({
     keyGenerator: getIp,
-    limit: 40,
+    limit: async () => parseInt(await getConfig("ratelimit")) ?? 40,
     windowMs: 1000 * 60,
     standardHeaders: "draft-6"
   }),
