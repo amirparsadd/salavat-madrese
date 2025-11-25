@@ -16,7 +16,7 @@ async function initialize() {
   try {
     await client.query("BEGIN");
 
-    // Create clicks table if it doesn't exist (with all columns for new installations)
+    // Create clicks table
     await client.query(`
       CREATE TABLE IF NOT EXISTS clicks (
         id SERIAL PRIMARY KEY,
@@ -28,31 +28,26 @@ async function initialize() {
     `);
 
     // Add daily_amount column if it doesn't exist (for existing tables)
-    // Using a safer approach that checks if column exists before adding
-    const dailyAmountCheck = await client.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'clicks' AND column_name = 'daily_amount'
+    await client.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+          WHERE table_name='clicks' AND column_name='daily_amount') THEN
+          ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0;
+        END IF;
+      END $$;
     `);
-    
-    if (dailyAmountCheck.rows.length === 0) {
-      await client.query(`
-        ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0
-      `);
-    }
 
     // Add daily_last_update column if it doesn't exist (for existing tables)
-    const dailyLastUpdateCheck = await client.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'clicks' AND column_name = 'daily_last_update'
+    await client.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+          WHERE table_name='clicks' AND column_name='daily_last_update') THEN
+          ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now();
+        END IF;
+      END $$;
     `);
-    
-    if (dailyLastUpdateCheck.rows.length === 0) {
-      await client.query(`
-        ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now()
-      `);
-    }
 
     // Ensure a single row exists in clicks table
     await client.query(`
