@@ -69,7 +69,10 @@ export const clicks = reactive<{
     if(this.total < data.total) {
       this.total = data.total
     }
-    this.today = data.daily.amount
+    const newToday = data.daily.amount;
+    if (newToday > this.today || newToday < this.today / 2) {
+      this.today = newToday;
+    }
     this.loading = false
   }
 })
