@@ -60,7 +60,15 @@ app.get("/", (c) => {
 app.post("/click",
   rateLimiter({
     keyGenerator: getIp,
-    limit: async () => parseInt(await getConfig("ratelimit")) ?? 40,
+    limit: async () => {
+      const parsedConfig = parseInt(await getConfig("ratelimit"))
+
+      if(Number.isNaN(parsedConfig) || parsedConfig < 1) {
+        return 40
+      }
+
+      return parsedConfig
+    },
     windowMs: 1000 * 60,
     standardHeaders: "draft-6"
   }),
