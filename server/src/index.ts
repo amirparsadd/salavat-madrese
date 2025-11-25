@@ -73,6 +73,7 @@ app.post("/click",
     standardHeaders: "draft-6",
     store: new RedisStore({
       sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+      prefix: "ratelimit-clicks:"
     }) as unknown as Store,
   }),
   (c) => {
