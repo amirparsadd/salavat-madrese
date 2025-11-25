@@ -27,7 +27,7 @@
           <span>آمار و ارقام</span>
           <img src="/barchart.png" alt="تصویر آمار" width="24px" height="24px">
         </h2>
-        <Counter :value="clicks.total">کل صلوات ها: </Counter>
+        <Counter v-if="clicks.today !== clicks.today" :value="clicks.total">کل صلوات ها: </Counter>
         <Counter :value="clicks.today">صلوات های امروز: </Counter>
       </div>
       <ShareButton />
