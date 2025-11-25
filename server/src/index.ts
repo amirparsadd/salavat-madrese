@@ -1,16 +1,16 @@
-if(process.env.NODE_ENV !== "production") {
-  (await import("dotenv")).configDotenv()
-}
+import "dotenv/config"
 
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { getClickData, initializeSyncJob, loadClickData, addClick, addClicks } from './clicks.js'
-import { rateLimiter } from 'hono-rate-limiter'
+import { rateLimiter, type Store } from 'hono-rate-limiter'
 import { cors } from 'hono/cors'
 import { getIp } from './utils.js'
 import { getAllConfigs, getConfig, initializeConfigCacheClearJob, setConfig } from './configs.js'
 import { adminMiddleware } from './admin-middleware.js'
 import { log } from './logger.js'
+import RedisStore from 'rate-limit-redis'
+import { redisClient } from './redis.js'
 
 try {
   await loadClickData()
@@ -70,7 +70,10 @@ app.post("/click",
       return parsedConfig
     },
     windowMs: 1000 * 60,
-    standardHeaders: "draft-6"
+    standardHeaders: "draft-6",
+    store: new RedisStore({
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+    }) as unknown as Store,
   }),
   (c) => {
   addClick()

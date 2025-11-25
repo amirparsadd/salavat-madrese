@@ -9,7 +9,9 @@
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "hono": "^4.9.9",
-    "hono-rate-limiter": "^0.4.2"
+    "hono-rate-limiter": "^0.4.2",
+    "rate-limit-redis": "^4.3.0",
+    "redis": "^5.10.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
