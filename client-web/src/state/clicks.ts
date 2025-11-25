@@ -26,6 +26,22 @@ export const clicks = reactive<{
       return
     }
 
+    const data = await req.json() as {
+      success: boolean,
+      achievement : {
+        type: "1k-click",
+        data: unknown
+      } | undefined
+    }
+
+    if(data.achievement) {
+      switch (data.achievement.type) {
+        case "1k-click": {
+          toast.success(`تو ${data.achievement.data}مین کلیک بودی!`)
+        }
+      }
+    }
+
     interval.restart()
   },
   async fetch() {

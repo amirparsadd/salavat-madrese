@@ -67,7 +67,18 @@ app.post("/click",
   (c) => {
   addClick()
   log("info", "hono", "Click submitted", { ip: getIp(c) })
-  return c.text("Submitted", 201)
+
+  if(getClickData().total % 1000 === 0) {
+    return c.json({
+      success: true,
+      achievement: {
+        type: "1k-click",
+        data: getClickData().total
+      }
+    })
+  }
+
+  return c.json({ success: true }, 201)
   }
 )
 
