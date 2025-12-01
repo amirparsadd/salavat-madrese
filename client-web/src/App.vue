@@ -23,13 +23,13 @@
       <button @click="clicks.click()" aria-label="دکمه صلوات فرستادن" class="m-4 p-8 rounded-full cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-110 border border-slate-300 bg-slate-50">
         <img src="/pray.png" width="64px" height="64px">
       </button>
-      <div v-if="!clicks.loading">
+      <div>
         <h2 class="flex gap-1 text-xl font-semibold">
           <span>آمار و ارقام</span>
           <img src="/barchart.png" alt="تصویر آمار" width="24px" height="24px">
         </h2>
-        <Counter v-if="clicks.today !== clicks.total" :value="clicks.total">کل صلوات ها: </Counter>
-        <Counter :value="clicks.today">صلوات های امروز: </Counter>
+        <Counter v-if="clicks.today !== clicks.total && !clicks.loading" :value="clicks.total">کل صلوات ها: </Counter>
+        <Counter :value="clicks.today" v-if="!clicks.loading">صلوات های امروز: </Counter>
         <!-- A Counter isn't really needed as this number always goes up in small increments -->
         <p>صلوات های تو: {{ clicks.you.toLocaleString("fa-IR") }}</p>
       </div>
