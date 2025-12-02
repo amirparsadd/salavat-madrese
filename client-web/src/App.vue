@@ -6,7 +6,8 @@
   import Counter from './component/Counter.vue';
   import Footer from './component/Footer.vue';
   import ShareButton from './component/ShareButton.vue';
-import { offline } from './state/offline';
+  import { offline } from './state/offline';
+  import OfflineIndicator from './component/OfflineIndicator.vue';
 
   onMounted(() => {
     interval.restart()
@@ -19,9 +20,7 @@ import { offline } from './state/offline';
 
 <template>
   <main class="w-screen h-dvh bg-slate-200 flex flex-col items-center justify-center p-4">
-    <div v-if="offline.isOffline" class="fixed p-1 text-center top-0 left-0 w-full bg-red-400 text-white">
-      نتونستیم به سرور وصل شیم. یا نت تو ریده یا نت ما.
-    </div>
+    <OfflineIndicator />
     <div class="flex-1 flex flex-col items-center justify-center">
       <h1 class="text-3xl font-bold">صلوات مدرسه</h1>
       <p>اینجا میتونی همراه با سایر دانش آموزان ایران بشینی و برای تعطیلی مدارس صلوات بفرستی :)</p>
