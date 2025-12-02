@@ -57,6 +57,8 @@ app.get("/", (c) => {
   return c.json(data)
 })
 
+app.get("/up", (c) => c.text("Im up!"))
+
 app.post("/click",
   rateLimiter({
     keyGenerator: getIp,
