@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import { clicks } from "./clicks";
+import { offline } from "./offline";
 
 const REFETCH_INTERVAL = 2 * 1000
 
@@ -13,6 +14,9 @@ export const interval = reactive<{
       clearInterval(this.value)
     }
     
-    this.value = setInterval(() => clicks.fetch(), REFETCH_INTERVAL)
+    this.value = setInterval(() => {
+      offline.checkOffline()
+      clicks.fetch()
+    }, REFETCH_INTERVAL)
   }
 })
