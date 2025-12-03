@@ -9,6 +9,6 @@ import type { Context, Env, Input } from "hono";
  */
 export function getIp(c: Context<Env, string, Input>): string {
   return c.req.header()["ar-real-ip"]
-    ?? c.req.header()["x-forwarded-for"]
+    ?? c.req.header()["x-forwarded-for"].split(",")[0].trim()
     ?? String(getConnInfo(c).remote.address)
 }
