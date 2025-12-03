@@ -28,6 +28,7 @@ log("info", "hono", "Background jobs initialized")
 const app = new Hono()
 
 app.use(cors())
+
 app.use(async (c, next) => {
   const startTime = Date.now()
   await next()
