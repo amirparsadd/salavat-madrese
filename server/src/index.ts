@@ -11,6 +11,8 @@ import { adminMiddleware } from './admin-middleware.js'
 import { log } from './logger.js'
 import RedisStore from 'rate-limit-redis'
 import { redisClient } from './redis.js'
+import { zValidator } from "@hono/zod-validator"
+import z from "zod"
 
 try {
   await loadClickData()
@@ -108,38 +110,53 @@ app.get("/configs", async (c) => {
   }
 })
 
-app.get("/configs/:key", async (c) => {
-  try {
-    const key = c.req.param().key
-    const config = await getConfig(key)
-
-    if (config === null || config === undefined) {
-      log("debug", "hono", "Config not found", { key })
-      return c.json({ data: config }, 404)
-    }
-
-    log("debug", "hono", "Config retrieved", { key })
-    return c.json({ data: config }, 200)
-  } catch (error) {
-    log("error", "hono", "Error retrieving config", { 
-      key: c.req.param().key, 
-      error: error instanceof Error ? error.message : String(error) 
+app.get("/configs/:key",
+  zValidator(
+    "param",
+    z.object({
+      key: z.string().trim().min(1)
     })
-    return c.json({ error: "Internal server error" }, 500)
+  ),
+  async (c) => {
+    try {
+      const { key } = c.req.valid("param")
+      const config = await getConfig(key)
+
+      if (config === null || config === undefined) {
+        log("debug", "hono", "Config not found", { key })
+        return c.json({ data: config }, 404)
+      }
+
+      log("debug", "hono", "Config retrieved", { key })
+      return c.json({ data: config }, 200)
+    } catch (error) {
+      log("error", "hono", "Error retrieving config", { 
+        key: c.req.param().key, 
+        error: error instanceof Error ? error.message : String(error) 
+      })
+      return c.json({ error: "Internal server error" }, 500)
+    }
   }
-})
+)
 
 app.post("/configs/:key",
   adminMiddleware,
+  zValidator(
+    "param",
+    z.object({
+      key: z.string().trim().min(1)
+    })
+  ),
+  zValidator(
+    "json",
+    z.object({
+      value: z.string().trim().min(1)
+    })
+  ),
   async (c) => {
     try {
-      const key = c.req.param().key
-      const { value } = (await c.req.json()) as { value: string }
-
-      if(!key || !value || key.trim().length === 0 || value.trim().length === 0) {
-        log("warn", "hono", "Invalid config key or value", { key, hasValue: !!value })
-        return c.json({ success: false, error: "Invalid Key or Value" }, 400)
-      }
+      const key = c.req.valid("param").key
+      const { value } = c.req.valid("json")
 
       await setConfig(key, value)
       log("info", "hono", "Config set", { key, ip: getIp(c) })
@@ -157,14 +174,15 @@ app.post("/configs/:key",
 
 app.post("/clicks",
   adminMiddleware,
+  zValidator(
+    "json",
+    z.object({
+      amount: z.number().min(1)
+    })
+  ),
   async (c) => {
     try {
-      const amount = (await c.req.json()).amount
-
-      if(!amount || typeof amount !== "number") {
-        log("warn", "hono", "Invalid clicks amount", { amount, ip: getIp(c) })
-        return c.json({ success: false, error: "Invalid Amount" }, 400)
-      }
+      const { amount } = c.req.valid("json")
 
       addClicks(amount)
       const total = getClickData().total
