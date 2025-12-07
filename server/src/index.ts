@@ -92,7 +92,7 @@ app.post("/click",
           type: "1k-click",
           data: getClickData().total
         }
-      })
+      }, 201)
     }
 
     return c.json({ success: true }, 201)
