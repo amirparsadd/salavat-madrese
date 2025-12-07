@@ -82,20 +82,20 @@ app.post("/click",
     }) as unknown as Store,
   }),
   (c) => {
-  addClick()
-  log("info", "hono", "Click submitted", { ip: getIp(c) })
+    addClick()
+    log("info", "hono", "Click submitted", { ip: getIp(c) })
 
-  if(getClickData().total % 1000 === 0) {
-    return c.json({
-      success: true,
-      achievement: {
-        type: "1k-click",
-        data: getClickData().total
-      }
-    })
-  }
+    if(getClickData().total % 1000 === 0) {
+      return c.json({
+        success: true,
+        achievement: {
+          type: "1k-click",
+          data: getClickData().total
+        }
+      })
+    }
 
-  return c.json({ success: true }, 201)
+    return c.json({ success: true }, 201)
   }
 )
 
