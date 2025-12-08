@@ -1,7 +1,9 @@
 // Load .env
 if(process.env.NODE_ENV !== "production") {
   const dotenv = require("dotenv")
-  dotenv.configDotenv()
+  dotenv.configDotenv({
+    quiet: true
+  })
 }
 
 const app = require("./handler")
