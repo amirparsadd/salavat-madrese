@@ -45,7 +45,8 @@ export async function loadClickData() {
     const res = await fetch(process.env.DAL_ENDPOINT + "/clicks", {
       method: "GET",
       headers: {
-        Authorization: process.env.DAL_ACCESS_TOKEN || ""
+        Authorization: process.env.DAL_ACCESS_TOKEN || "",
+        "Content-Type": "application/json"
       }
     })
 
@@ -71,7 +72,8 @@ export async function syncClickData() {
       const res = await fetch(process.env.DAL_ENDPOINT + "/clicks", {
         method: "POST",
         headers: {
-          Authorization: process.env.DAL_ACCESS_TOKEN || ""
+          Authorization: process.env.DAL_ACCESS_TOKEN || "",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           amount: clickCountBuffer.value
