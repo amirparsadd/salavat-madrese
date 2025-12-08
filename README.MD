@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This documentation is a bit outdated. It would be highly appreciated if you put the time to rewrite this based on the current project structure!
+
 # Salavat Madreseh - Clicker App
 
 A fun web project that lets users "pray" (send salavats) for schools to be canceled! This is a full-stack application with a modern Vue 3 frontend, a Hono API backend, and a PostgreSQL database layer.
