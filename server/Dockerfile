@@ -1,23 +1,21 @@
-# Use an official Node.js runtime as the base image
-FROM node:20-alpine
+# Use the official Bun image
+FROM oven/bun:latest AS base
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files to the container
-COPY package.json package-lock.json ./
+# Copy only dependency files first (better caching)
+COPY package.json bun.lockb* ./
 
-# Install project dependencies
-RUN npm install
+# Install dependencies using Bun
+RUN bun install --frozen-lockfile
 
-# Copy the rest of the project files to the container
+# Copy source files
 COPY . .
 
-# Build the project
-RUN npm run build
+# Build your TS project
+RUN bun run build
 
-# Expose the port that the server will listen on
 EXPOSE 3000
 
-# Start the application
-CMD [ "npm", "run", "start"]
+# Start the app
+CMD ["bun", "run", "start"]

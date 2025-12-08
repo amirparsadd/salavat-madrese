@@ -1,4 +1,4 @@
-import { getConnInfo } from "@hono/node-server/conninfo";
+import { getConnInfo } from "hono/bun";
 import type { Context, Env, Input } from "hono";
 
 /**
