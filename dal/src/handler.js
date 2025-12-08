@@ -1,150 +1,93 @@
-const { ACCESS_TOKEN } = require("./config");
-const { getClickCount, incrementClickCount, getConfig, setConfig, getAllConfigs } = require("./db");
+const { Hono } = require('hono')
+const { z } = require('zod')
+const { zValidator } = require('@hono/zod-validator')
 
-/**
- * The request handler
- * 
- * @param {import("http").IncomingMessage} req 
- * @param {import("http").ServerResponse} res 
- */
-async function handler(req, res) {
-  const rawBody = await new Promise((resolve, reject) => {
-    let result = "";
-    
-    req.on("data", (chunk) => result += chunk);
-    req.on("end", () => resolve(result));
-    req.on("error", (err) => reject(err));
-  });
+const {
+  getClickCount,
+  incrementClickCount,
+  getConfig,
+  setConfig,
+  getAllConfigs
+} = require('./db')
 
-  res.appendHeader("Content-Type", "application/json")
+const { ACCESS_TOKEN } = require('./config')
 
-  const authorizationHeader = req.headers.authorization
+const app = new Hono()
 
-  if(!authorizationHeader || authorizationHeader !== ACCESS_TOKEN) {
-    res.writeHead(403)
-    res.write(JSON.stringify({
-      success: false,
-      error: "Invalid authorization header"   
-    }))
-    return res.end()
+app.use('*', (c, next) => {
+  const auth = c.req.header('authorization')
+  if (!auth || auth !== ACCESS_TOKEN) {
+    return c.json({ success: false, error: 'Invalid authorization header' }, 403)
+  }
+  return next()
+})
+
+app.get('/clicks', async (c) => {
+  const count = await getClickCount()
+  return c.json({ success: true, data: count })
+})
+
+app.post(
+  '/clicks',
+  zValidator(
+    'json',
+    z.object({
+      amount: z.number().min(0)
+    })
+  ),
+  async (c) => {
+    const { amount } = c.req.valid('json')
+    await incrementClickCount(amount)
+    return c.json({ success: true }, 201)
+  }
+)
+
+app.get('/configs', async (c) => {
+  const configs = await getAllConfigs()
+  return c.json({ success: true, data: configs })
+})
+
+app.get('/configs/:key', async (c) => {
+  const key = c.req.param('key')
+  const value = await getConfig(key)
+
+  if (value === null) {
+    return c.json({ success: false, error: 'Config not found' }, 404)
   }
 
-  if(req.method.toLowerCase() === "get" && req.url.startsWith("/clicks")) {
-    res.write(JSON.stringify({
-      success: true,
-      data: await getClickCount()
-    }))
-    return res.end()
-  } else if(req.method.toLowerCase() === "post" && req.url.startsWith("/clicks")) {
-    let body;
-    try {
-      body = JSON.parse(rawBody)
-    } catch (error) {
-      console.error(error)
-    }
+  return c.json({ success: true, data: value })
+})
 
-    if(!body || !body.amount || typeof body.amount !== "number" || body.amount < 0) {
-      res.writeHead(400)
-      res.write(JSON.stringify({
-        success: false,
-        error: "Invalid body"   
-      }))
-      return res.end()
-    }
+const configBody = z.object({
+  value: z.string()
+})
 
-    await incrementClickCount(body.amount)
+const createConfigBody = z.object({
+  key: z.string(),
+  value: z.string()
+})
 
-    res.writeHead(201)
-    res.write(JSON.stringify({
-      success: true
-    }))
-    return res.end()
-  } else if(req.method.toLowerCase() === "get" && req.url.startsWith("/configs")) {
-    const urlParts = req.url.split("/").filter(Boolean)
-    
-    if(urlParts.length === 1) {
-      const configs = await getAllConfigs()
-      res.write(JSON.stringify({
-        success: true,
-        data: configs
-      }))
-      return res.end()
-    } else if(urlParts.length === 2) {
-      const key = urlParts[1]
-      const value = await getConfig(key)
-      
-      if(value === null) {
-        res.writeHead(404)
-        res.write(JSON.stringify({
-          success: false,
-          error: "Config not found"
-        }))
-        return res.end()
-      }
-      
-      res.write(JSON.stringify({
-        success: true,
-        data: value
-      }))
-      return res.end()
-    }
-  } else if((req.method.toLowerCase() === "post" || req.method.toLowerCase() === "put") && req.url.startsWith("/configs")) {
-    const urlParts = req.url.split("/").filter(Boolean)
-    let body;
-    
-    try {
-      body = JSON.parse(rawBody)
-    } catch (error) {
-      console.error(error)
-    }
-
-    if(urlParts.length === 1) {
-      if(!body || !body.key || typeof body.key !== "string" || !body.value || typeof body.value !== "string") {
-        res.writeHead(400)
-        res.write(JSON.stringify({
-          success: false,
-          error: "Invalid body. Expected { key: string, value: string }"
-        }))
-        return res.end()
-      }
-
-      await setConfig(body.key, body.value)
-
-      res.writeHead(201)
-      res.write(JSON.stringify({
-        success: true
-      }))
-      return res.end()
-    } else if(urlParts.length === 2) {
-      const key = urlParts[1]
-      
-      if(!body || !body.value || typeof body.value !== "string") {
-        res.writeHead(400)
-        res.write(JSON.stringify({
-          success: false,
-          error: "Invalid body. Expected { value: string }"
-        }))
-        return res.end()
-      }
-
-      await setConfig(key, body.value)
-
-      res.writeHead(200)
-      res.write(JSON.stringify({
-        success: true
-      }))
-      return res.end()
-    }
+app.post(
+  '/configs',
+  zValidator('json', createConfigBody),
+  async (c) => {
+    const { key, value } = c.req.valid('json')
+    await setConfig(key, value)
+    return c.json({ success: true }, 201)
   }
+)
 
-  res.writeHead(404)
-  res.write(JSON.stringify({
-    success: false,
-    error: "Not found"
-  }))
-  return res.end()
-}
+app.put(
+  '/configs/:key',
+  zValidator('json', configBody),
+  async (c) => {
+    const key = c.req.param('key')
+    const { value } = c.req.valid('json')
+    await setConfig(key, value)
+    return c.json({ success: true })
+  }
+)
 
-module.exports = {
-  handler
-}
+app.notFound((c) => c.json({ success: false, error: 'Not found' }, 404))
+
+module.exports = app

@@ -4,8 +4,7 @@ if(process.env.NODE_ENV !== "production") {
   dotenv.configDotenv()
 }
 
-const http = require("http")
-const { handler } = require("./handler")
+const app = require("./handler")
 const { PORT, HOSTNAME, ACCESS_TOKEN } = require("./config")
 const { initialize } = require("./db")
 
@@ -18,17 +17,8 @@ if(!ACCESS_TOKEN || ACCESS_TOKEN.trim().length === 0) {
 // Init DB
 initialize()
 
-// Setup server
-const server = http.createServer(handler)
-server.listen(
-  PORT,
-  HOSTNAME,
-  undefined,
-  () => {
-    console.info(`Server is up at http://${HOSTNAME}:${PORT}`)
-  }
-)
-
 module.exports = {
-  server
+  fetch: app.fetch,
+  port: PORT ?? 3000,
+  hostname: HOSTNAME ?? "0.0.0.0" 
 }
