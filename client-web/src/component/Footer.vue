@@ -8,11 +8,11 @@
     <div class="text-sm mt-1 text-blue-500 font-bold flex gap-4">
       <a
         class="link link-primary"
-        :href="configs?.value['support'] || 'https://t.me/amirparsab90'"
+        :href="configs?.value['support'] ?? 'https://t.me/amirparsab90'"
       >پشتیبانی</a>
       <a
         class="link link-primary"
-        :href="configs?.value['servicestatus'] || 'https://uptimekuma.afrachin.ir/status/salavat-madrese'"
+        :href="configs?.value['servicestatus'] ?? 'https://uptimekuma.afrachin.ir/status/salavat-madrese'"
       >وضعیت سرویس</a>
     </div>
   </footer>
