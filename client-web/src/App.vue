@@ -20,7 +20,7 @@
 </script>
 
 <template>
-  <main class="w-screen h-dvh bg-slate-200 flex flex-col items-center justify-center p-4">
+  <main class="w-screen h-dvh bg-base-100 text-base-content flex flex-col items-center justify-center p-4">
     <OfflineIndicator />
     <div class="flex-1 flex flex-col items-center justify-center">
       <h1 class="text-3xl font-bold">صلوات مدرسه</h1>
