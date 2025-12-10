@@ -1,4 +1,4 @@
-import type { Context, Next } from "hono";
+import type { Context, Next } from "hono"
 import { log } from './logger.js'
 import { getIp } from './utils.js'
 

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue';
-  import { configs } from './state/configs';
-  import { clicks } from './state/clicks';
-  import { interval } from './state/interval';
-  import Counter from './component/Counter.vue';
-  import Footer from './component/Footer.vue';
-  import ShareButton from './component/ShareButton.vue';
-  import { offline } from './state/offline';
-  import OfflineIndicator from './component/OfflineIndicator.vue';
-  import PrayButton from './component/PrayButton.vue';
+  import { onMounted } from 'vue'
+  import { configs } from './state/configs'
+  import { clicks } from './state/clicks'
+  import { interval } from './state/interval'
+  import Counter from './component/Counter.vue'
+  import Footer from './component/Footer.vue'
+  import ShareButton from './component/ShareButton.vue'
+  import { offline } from './state/offline'
+  import OfflineIndicator from './component/OfflineIndicator.vue'
+  import PrayButton from './component/PrayButton.vue'
 
   onMounted(() => {
     interval.restart()

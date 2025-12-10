@@ -1,6 +1,6 @@
-import { reactive } from "vue";
-import { interval } from "./interval";
-import { useToast } from "vue-toastification";
+import { reactive } from "vue"
+import { interval } from "./interval"
+import { useToast } from "vue-toastification"
 
 const toast = useToast()
 
@@ -69,9 +69,9 @@ export const clicks = reactive<{
     if(this.total < data.total) {
       this.total = data.total
     }
-    const newToday = data.daily.amount;
+    const newToday = data.daily.amount
     if (newToday > this.today || newToday < this.today / 2) {
-      this.today = newToday;
+      this.today = newToday
     }
     this.loading = false
   }

@@ -1,20 +1,20 @@
-const { DATABASE_CONNECTION_STRING } = require("./config");
-const { Pool } = require("pg");
+const { DATABASE_CONNECTION_STRING } = require("./config")
+const { Pool } = require("pg")
 
 // Validate DATABASE_CONNECTION_STRING
 if (!DATABASE_CONNECTION_STRING) {
-  console.error("No DATABASE_CONNECTION_STRING found, quitting...");
-  process.exit(1);
+  console.error("No DATABASE_CONNECTION_STRING found, quitting...")
+  process.exit(1)
 }
 
 const pool = new Pool({
   connectionString: DATABASE_CONNECTION_STRING,
-});
+})
 
 async function initialize() {
-  const client = await pool.connect();
+  const client = await pool.connect()
   try {
-    await client.query("BEGIN");
+    await client.query("BEGIN")
 
     // Create clicks table if it doesn't exist (with all columns for new installations)
     await client.query(`
@@ -24,8 +24,8 @@ async function initialize() {
         daily_amount BIGINT NOT NULL DEFAULT 0,
         daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now(),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-      );
-    `);
+      )
+    `)
 
     // Add daily_amount column if it doesn't exist (for existing tables)
     // Using a safer approach that checks if column exists before adding
@@ -33,12 +33,12 @@ async function initialize() {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'clicks' AND column_name = 'daily_amount'
-    `);
+    `)
     
     if (dailyAmountCheck.rows.length === 0) {
       await client.query(`
         ALTER TABLE clicks ADD COLUMN daily_amount BIGINT NOT NULL DEFAULT 0
-      `);
+      `)
     }
 
     // Add daily_last_update column if it doesn't exist (for existing tables)
@@ -46,12 +46,12 @@ async function initialize() {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'clicks' AND column_name = 'daily_last_update'
-    `);
+    `)
     
     if (dailyLastUpdateCheck.rows.length === 0) {
       await client.query(`
         ALTER TABLE clicks ADD COLUMN daily_last_update TIMESTAMP WITH TIME ZONE DEFAULT now()
-      `);
+      `)
     }
 
     // Ensure a single row exists in clicks table
@@ -59,7 +59,7 @@ async function initialize() {
       INSERT INTO clicks (id, count, daily_amount, daily_last_update)
       SELECT 1, 1, 1, now()
       WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
-    `);
+    `)
 
     // Create configs table
     await client.query(`
@@ -68,8 +68,8 @@ async function initialize() {
         value TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-      );
-    `);
+      )
+    `)
 
     // Insert initial config values
     await client.query(`
@@ -80,16 +80,16 @@ async function initialize() {
       ON CONFLICT (key) DO UPDATE 
         SET value = EXCLUDED.value,
             updated_at = now();
-    `);
+    `)
 
-    await client.query("COMMIT");
-    console.info("DAL initialization complete.");
+    await client.query("COMMIT")
+    console.info("DAL initialization complete.")
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error initializing DAL:", err);
-    process.exit(1);
+    await client.query("ROLLBACK")
+    console.error("Error initializing DAL:", err)
+    process.exit(1)
   } finally {
-    client.release();
+    client.release()
   }
 }
 
@@ -102,8 +102,8 @@ async function initialize() {
 async function getClickCount() {
   const res = await pool.query(
     "SELECT count, daily_amount, daily_last_update FROM clicks WHERE id = 1"
-  );
-  const row = res.rows[0];
+  )
+  const row = res.rows[0]
   if (!row) {
     return {
       daily: {
@@ -111,7 +111,7 @@ async function getClickCount() {
         lastUpdate: 0
       },
       total: 0
-    };
+    }
   }
   return {
     daily: {
@@ -119,7 +119,7 @@ async function getClickCount() {
       lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
     },
     total: Number(row.count) || 0
-  };
+  }
 }
 
 /**
@@ -141,10 +141,10 @@ async function incrementClickCount(amount = 1) {
      WHERE id = 1
      RETURNING count, daily_amount, daily_last_update`,
     [amount]
-  );
-  const row = res.rows[0];
+  )
+  const row = res.rows[0]
   if (!row) {
-    return null;
+    return null
   }
   return {
     daily: {
@@ -152,7 +152,7 @@ async function incrementClickCount(amount = 1) {
       lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
     },
     total: Number(row.count) || 0
-  };
+  }
 }
 
 // Key-Value Functions
@@ -166,8 +166,8 @@ async function getConfig(key) {
   const res = await pool.query(
     "SELECT value FROM configs WHERE key = $1",
     [key]
-  );
-  return res.rows[0]?.value ?? null;
+  )
+  return res.rows[0]?.value ?? null
 }
 
 /**
@@ -187,8 +187,8 @@ async function setConfig(key, value) {
     RETURNING value
     `,
     [key, value]
-  );
-  return res.rows[0]?.value ?? null;
+  )
+  return res.rows[0]?.value ?? null
 }
 
 /**
@@ -196,11 +196,11 @@ async function setConfig(key, value) {
  * @returns {Promise<Record<string, string>>}
  */
 async function getAllConfigs() {
-  const res = await pool.query("SELECT key, value FROM configs");
+  const res = await pool.query("SELECT key, value FROM configs")
   return res.rows.reduce((acc, row) => {
-    acc[row.key] = row.value;
-    return acc;
-  }, {});
+    acc[row.key] = row.value
+    return acc
+  }, {})
 }
 
 module.exports = {
@@ -211,4 +211,4 @@ module.exports = {
   getConfig,
   setConfig,
   getAllConfigs,
-};
+}

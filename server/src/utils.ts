@@ -1,5 +1,5 @@
-import { getConnInfo } from "hono/bun";
-import type { Context, Env, Input } from "hono";
+import { getConnInfo } from "hono/bun"
+import type { Context, Env, Input } from "hono"
 
 /**
  * Get the request's ip

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { configs } from '../state/configs';
+  import { configs } from '../state/configs'
 </script>
 
 <template>

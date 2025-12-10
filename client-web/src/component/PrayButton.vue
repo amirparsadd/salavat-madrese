@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { clicks } from '../state/clicks';
+  import { clicks } from '../state/clicks'
 </script>
 
 <template>

@@ -1,6 +1,6 @@
-import { reactive } from "vue";
-import { clicks } from "./clicks";
-import { offline } from "./offline";
+import { reactive } from "vue"
+import { clicks } from "./clicks"
+import { offline } from "./offline"
 
 const REFETCH_INTERVAL = 2 * 1000
 

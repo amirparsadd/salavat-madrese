@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { offline } from '../state/offline';
+  import { offline } from '../state/offline'
 </script>
 
 <template>
