@@ -19,18 +19,13 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     (async () => {
-      const cache = await caches.open(CACHE_NAME);
-
-      const cachedResponse = await cache.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
       try {
         const response = await fetch(request);
         cache.put(request, response.clone());
         return response;
       } catch (err) {
+        const cache = await caches.open(CACHE_NAME);
+        const cachedResponse = await cache.match(request);
         if (cachedResponse) return cachedResponse;
         return new Response("You are offline", { status: 503 });
       }
