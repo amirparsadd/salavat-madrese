@@ -26,6 +26,7 @@
           }
 
           // normal easeOutQuart for larger jumps
+          // https://easings.net/#easeOutQuart
           return b + c * (1 - Math.pow(1 - progress, 4));
         }
       });
