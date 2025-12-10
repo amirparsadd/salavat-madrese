@@ -20,7 +20,7 @@
           const progress = t / d;
           const smallIncrement = c === 1;
           
-          // if the increment is tiny, skip most of the animation
+          // if the increment is tiny, skip all of the animation
           if (smallIncrement) {
             return b + c
           }
