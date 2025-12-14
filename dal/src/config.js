@@ -1,5 +1,5 @@
 const PORT = process.env.PORT || 3000
-const HOSTNAME = process.env.HOSTNAME || "0.0.0.0"
+const HOSTNAME = process.env.HOSTNAME
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN
 const DATABASE_CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING
 

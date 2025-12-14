@@ -22,5 +22,5 @@ initialize()
 module.exports = {
   fetch: app.fetch,
   port: PORT ?? 3000,
-  hostname: HOSTNAME ?? "0.0.0.0" 
+  hostname: HOSTNAME
 }
