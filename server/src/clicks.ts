@@ -62,7 +62,7 @@ export async function loadClickData() {
 
     log("info", "clicks", "Loaded click data from DAL", { daily: data.daily.amount, total: data.total })
   } catch (error) {
-    log("error", "clicks", "Error loading click data from DAL", { error: error instanceof Error ? error.message : String(error) })
+    log("error", "clicks", "Error loading click data from DAL", { error: error instanceof Error ? error.message : String(error), error_raw: JSON.stringify(error) })
   }
 }
 
