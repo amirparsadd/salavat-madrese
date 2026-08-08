@@ -12,8 +12,12 @@
       >پشتیبانی</a>
       <a
         class="link link-primary"
-        :href="configs?.value['servicestatus'] ?? 'https://uptimekuma.afrachin.ir/status/salavat-madrese'"
+        :href="configs?.value['servicestatus'] ?? 'https://status.figfit.ir/status/salavat'"
       >وضعیت سرویس</a>
+      <a
+        class="link link-primary"
+        :href="configs?.value['telegramchannel'] ?? 'https://t.me/salavat_madrese'"
+      >کانال تلگرام</a>
     </div>
   </footer>
 </template>
