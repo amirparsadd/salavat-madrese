@@ -12,6 +12,9 @@ import RedisStore from 'rate-limit-redis'
 import { redisClient } from './redis.js'
 import { zValidator } from "@hono/zod-validator"
 import z from "zod"
+import { PROVINCES } from './provinces.js'
+
+const provinceSchema = z.enum(PROVINCES)
 
 try {
   await loadClickData()
@@ -79,9 +82,12 @@ app.post("/click",
       prefix: "ratelimit-clicks:"
     }) as unknown as Store,
   }),
-  (c) => {
-    addClick()
-    log("info", "hono", "Click submitted", { ip: getIp(c) })
+  async (c) => {
+    const body = await c.req.json().catch(() => undefined)
+    const province = provinceSchema.safeParse(body?.province).data
+
+    addClick(province)
+    log("info", "hono", "Click submitted", { ip: getIp(c), province })
 
     if(getClickData().total % 1000 === 0) {
       return c.json({

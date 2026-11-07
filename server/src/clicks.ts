@@ -1,11 +1,13 @@
 import { log } from './logger.js'
+import type { Province } from './provinces.js'
 
 interface DataStructure {
   daily: {
     amount: number,
     lastUpdate: number
   },
-  total: number
+  total: number,
+  provinces: Record<string, number>
 }
 
 let data: DataStructure = {
@@ -13,16 +15,23 @@ let data: DataStructure = {
     amount: 0,
     lastUpdate: 0
   },
-  total: 0
+  total: 0,
+  provinces: {}
 }
 
 let clickCountBuffer = {
-  value: 0
+  value: 0,
+  provinces: {} as Record<string, number>
 }
 
-export function addClick() {
+export function addClick(province?: Province) {
   clickCountBuffer.value++
-  log("debug", "clicks", "Click added", { bufferValue: clickCountBuffer.value })
+
+  if (province) {
+    clickCountBuffer.provinces[province] = (clickCountBuffer.provinces[province] ?? 0) + 1
+  }
+
+  log("debug", "clicks", "Click added", { bufferValue: clickCountBuffer.value, province })
 }
 
 export function addClicks(amount: number) {
@@ -31,12 +40,19 @@ export function addClicks(amount: number) {
 }
 
 export function getClickData(): DataStructure {
+  const provinces = { ...data.provinces }
+
+  for (const [province, amount] of Object.entries(clickCountBuffer.provinces)) {
+    provinces[province] = (provinces[province] ?? 0) + amount
+  }
+
   return {
     daily: {
       amount: data.daily.amount + clickCountBuffer.value,
       lastUpdate: data.daily.lastUpdate
     },
-    total: data.total + clickCountBuffer.value
+    total: data.total + clickCountBuffer.value,
+    provinces
   }
 }
 
@@ -59,6 +75,7 @@ export async function loadClickData() {
 
     data.daily = resData.daily
     data.total = resData.total
+    data.provinces = resData.provinces ?? {}
 
     log("info", "clicks", "Loaded click data from DAL", { daily: data.daily.amount, total: data.total })
   } catch (error) {
@@ -69,6 +86,9 @@ export async function loadClickData() {
 export async function syncClickData() {
   try {
     if(clickCountBuffer.value !== 0) {
+      const syncedAmount = clickCountBuffer.value
+      const syncedProvinces = { ...clickCountBuffer.provinces }
+
       const res = await fetch(process.env.DAL_ENDPOINT + "/clicks", {
         method: "POST",
         headers: {
@@ -76,17 +96,25 @@ export async function syncClickData() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          amount: clickCountBuffer.value
+          amount: syncedAmount,
+          provinces: syncedProvinces
         })
       })
 
       if (!res.ok) {
-        log("error", "clicks", "Failed to sync click data to DAL", { status: res.status, statusText: res.statusText, amount: clickCountBuffer.value })
+        log("error", "clicks", "Failed to sync click data to DAL", { status: res.status, statusText: res.statusText, amount: syncedAmount })
         return
       }
 
-      const syncedAmount = clickCountBuffer.value
-      clickCountBuffer.value = 0
+      // Only remove what was synced, clicks received during the request stay in the buffer
+      clickCountBuffer.value -= syncedAmount
+      for (const [province, amount] of Object.entries(syncedProvinces)) {
+        clickCountBuffer.provinces[province] = (clickCountBuffer.provinces[province] ?? 0) - amount
+
+        if (clickCountBuffer.provinces[province] === 0) {
+          delete clickCountBuffer.provinces[province]
+        }
+      }
 
       log("info", "clicks", "Synced click data to DAL", { amount: syncedAmount })
     }

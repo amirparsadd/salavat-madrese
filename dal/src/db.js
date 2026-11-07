@@ -61,6 +61,15 @@ async function initialize() {
       WHERE NOT EXISTS (SELECT 1 FROM clicks WHERE id = 1);
     `)
 
+    // Create province clicks table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS province_clicks (
+        province TEXT PRIMARY KEY,
+        count BIGINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      )
+    `)
+
     // Create configs table
     await client.query(`
       CREATE TABLE IF NOT EXISTS configs (
@@ -96,13 +105,21 @@ async function initialize() {
 // Click Functions
 
 /**
- * Read the current click count with daily tracking
- * @returns {Promise<{daily: {amount: number, lastUpdate: number}, total: number}>}
+ * Read the current click count with daily tracking and per province totals
+ * @returns {Promise<{daily: {amount: number, lastUpdate: number}, total: number, provinces: Record<string, number>}>}
  */
 async function getClickCount() {
   const res = await pool.query(
     "SELECT count, daily_amount, daily_last_update FROM clicks WHERE id = 1"
   )
+  const provincesRes = await pool.query(
+    "SELECT province, count FROM province_clicks"
+  )
+  const provinces = provincesRes.rows.reduce((acc, row) => {
+    acc[row.province] = Number(row.count) || 0
+    return acc
+  }, {})
+
   const row = res.rows[0]
   if (!row) {
     return {
@@ -110,7 +127,8 @@ async function getClickCount() {
         amount: 0,
         lastUpdate: 0
       },
-      total: 0
+      total: 0,
+      provinces
     }
   }
   return {
@@ -118,40 +136,53 @@ async function getClickCount() {
       amount: Number(row.daily_amount) || 0,
       lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
     },
-    total: Number(row.count) || 0
+    total: Number(row.count) || 0,
+    provinces
   }
 }
 
 /**
- * Increment the click count atomically with daily tracking
+ * Increment the click count atomically with daily tracking and per province totals
  * @param {number} amount - number of clicks to add
- * @returns {Promise<{daily: {amount: number, lastUpdate: number}, total: number} | null>}
+ * @param {Record<string, number>} provinces - number of clicks to add per province
+ * @returns {Promise<void>}
  */
-async function incrementClickCount(amount = 1) {
-  const res = await pool.query(
-    `UPDATE clicks
-     SET 
-       count = count + $1,
-       daily_amount = CASE 
-         WHEN daily_last_update IS NOT NULL AND DATE(daily_last_update) = DATE(now()) 
-           THEN daily_amount + $1
-         ELSE $1
-       END,
-       daily_last_update = now()
-     WHERE id = 1
-     RETURNING count, daily_amount, daily_last_update`,
-    [amount]
-  )
-  const row = res.rows[0]
-  if (!row) {
-    return null
-  }
-  return {
-    daily: {
-      amount: Number(row.daily_amount) || 0,
-      lastUpdate: row.daily_last_update ? new Date(row.daily_last_update).getTime() : 0
-    },
-    total: Number(row.count) || 0
+async function incrementClickCount(amount = 1, provinces = {}) {
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+
+    await client.query(
+      `UPDATE clicks
+       SET 
+         count = count + $1,
+         daily_amount = CASE 
+           WHEN daily_last_update IS NOT NULL AND DATE(daily_last_update) = DATE(now()) 
+             THEN daily_amount + $1
+           ELSE $1
+         END,
+         daily_last_update = now()
+       WHERE id = 1`,
+      [amount]
+    )
+
+    for (const [province, count] of Object.entries(provinces)) {
+      await client.query(
+        `INSERT INTO province_clicks (province, count)
+         VALUES ($1, $2)
+         ON CONFLICT (province) DO UPDATE
+           SET count = province_clicks.count + EXCLUDED.count,
+               updated_at = now()`,
+        [province, count]
+      )
+    }
+
+    await client.query("COMMIT")
+  } catch (err) {
+    await client.query("ROLLBACK")
+    throw err
+  } finally {
+    client.release()
   }
 }
 

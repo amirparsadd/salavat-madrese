@@ -1,5 +1,7 @@
 <script setup lang="ts">
-  import { configs } from '../state/configs'
+  import { useConfigs } from '../queries/configs'
+
+  const { data: configs } = useConfigs()
 </script>
 
 <template>
@@ -8,15 +10,15 @@
     <div class="text-sm mt-1 text-blue-500 font-bold flex gap-4">
       <a
         class="link link-primary"
-        :href="configs?.value['support'] ?? 'https://t.me/amirparsab90'"
+        :href="configs?.['support'] ?? 'https://t.me/amirparsab90'"
       >پشتیبانی</a>
       <a
         class="link link-primary"
-        :href="configs?.value['servicestatus'] ?? 'https://status.figfit.ir/status/salavat'"
+        :href="configs?.['servicestatus'] ?? 'https://status.figfit.ir/status/salavat'"
       >وضعیت سرویس</a>
       <a
         class="link link-primary"
-        :href="configs?.value['telegramchannel'] ?? 'https://t.me/salavat_madrese'"
+        :href="configs?.['telegramchannel'] ?? 'https://t.me/salavat_madrese'"
       >کانال تلگرام</a>
     </div>
   </footer>

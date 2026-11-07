@@ -32,12 +32,13 @@ app.post(
   zValidator(
     'json',
     z.object({
-      amount: z.number().min(0)
+      amount: z.number().min(0),
+      provinces: z.record(z.string(), z.number().min(0)).optional()
     })
   ),
   async (c) => {
-    const { amount } = c.req.valid('json')
-    await incrementClickCount(amount)
+    const { amount, provinces } = c.req.valid('json')
+    await incrementClickCount(amount, provinces)
     return c.json({ success: true }, 201)
   }
 )
