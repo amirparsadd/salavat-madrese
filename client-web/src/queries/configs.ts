@@ -1,7 +1,9 @@
+import { API_ENDPOINT } from "../api"
+
 import { useQuery } from "@tanstack/vue-query"
 
 async function fetchConfigs(): Promise<Record<string, string>> {
-  const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/configs")
+  const req = await fetch(API_ENDPOINT + "/configs")
 
   if (!req.ok) {
     throw new Error(`Fetching configs failed with status ${req.status}`)

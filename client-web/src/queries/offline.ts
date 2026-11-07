@@ -1,8 +1,9 @@
 import { computed } from "vue"
 import { useQuery } from "@tanstack/vue-query"
+import { API_ENDPOINT } from "../api"
 
 async function checkUp(): Promise<boolean> {
-  const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/up")
+  const req = await fetch(API_ENDPOINT + "/up")
 
   return req.ok
 }

@@ -1,3 +1,5 @@
+import { API_ENDPOINT } from "../api"
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { useToast } from "vue-toastification"
 import { you } from "../state/you"
@@ -24,7 +26,7 @@ const STATS_QUERY_KEY = ["stats"]
 class RateLimitError extends Error {}
 
 async function fetchStats(): Promise<Stats> {
-  const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/")
+  const req = await fetch(API_ENDPOINT + "/")
 
   if (!req.ok) {
     throw new Error(`Fetching stats failed with status ${req.status}`)
@@ -69,7 +71,7 @@ export function useClick() {
 
   return useMutation({
     mutationFn: async (province: string) => {
-      const req = await fetch(import.meta.env.VITE_API_ENDPOINT + "/click", {
+      const req = await fetch(API_ENDPOINT + "/click", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ province })
